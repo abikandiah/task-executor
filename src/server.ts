@@ -2,7 +2,7 @@ import express, { Request, Response } from 'express';
 
 // Separate app definition from server start for easier testing
 const app = express();
-const PORT = process.env.PORT || 8000;
+const PORT = process.env.PORT || 3000;
 
 // Middleware
 app.use(express.json());
