@@ -1,0 +1,17 @@
+# Source control
+.git
+.gitignore
+
+# Dependencies (will be re-installed inside the container)
+node_modules
+npm-debug.log
+
+# Build outputs
+build
+dist
+tmp/
+
+# Local/testing files
+.vscode
+*.log
+
