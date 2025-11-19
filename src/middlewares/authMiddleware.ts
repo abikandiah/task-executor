@@ -1,9 +1,10 @@
+import { config } from 'config/index.js';
 import { NextFunction, Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 import { JwtPayload } from '../types/index.d.js';
 
 
-function authMiddleware(req: Request, res: Response, next: NextFunction): void {
+export const authMiddleware = (req: Request, res: Response, next: NextFunction): void => {
 	const authHeader = req.headers['authorization'];
 
 	if (typeof authHeader !== 'string' || !authHeader.startsWith('Bearer ')) {
@@ -19,11 +20,11 @@ function authMiddleware(req: Request, res: Response, next: NextFunction): void {
 
 	try {
 		// Validate dev auth via .env secret
-		if (process.env.NODE_ENV === 'development') {
-			if (!process.env.DEV_SECRET) {
-				throw new Error('DEV_SECRET not configured.');
+		if (config.isDevelopment) {
+			if (!config.auth.devSecret) {
+				throw new Error('Dev sercet not configured.');
 			}
-			if (token !== process.env.DEV_SECRET) {
+			if (token !== config.auth.devSecret) {
 				throw new Error('Token does not match development secret.');
 			}
 
@@ -34,11 +35,11 @@ function authMiddleware(req: Request, res: Response, next: NextFunction): void {
 			};
 		} else {
 			// Validate JWT token
-			if (!process.env.AUTHENTIK_SECRET) {
-				throw new Error('AUTHENTIK_SECRET not configured.');
+			if (!config.auth.authentikSecret) {
+				throw new Error('Authentik secret not configured.');
 			}
 
-			const decoded = jwt.verify(token, process.env.AUTHENTIK_SECRET) as JwtPayload;
+			const decoded = jwt.verify(token, config.auth.authentikSecret) as JwtPayload;
 			req.user = decoded;
 		}
 
