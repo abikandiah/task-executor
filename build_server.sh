@@ -41,14 +41,12 @@ echo ""
 # fi
 # echo ""
 
-# --- Stage 2: Build UI ---
-echo "--- Stage 2: Building UI (npm run build) ---"
+# --- Stage 2: Build and Copy UI ---
+echo "--- Stage 2: Building and Copying UI ---"
 if npm run build:sync-ui; then
-	echo "UI Built Successfully."
-	rsync -av --delete dist/ ../task-executor/src/ui-build/
-	echo "UI Build Copied Into Server."
+	echo "UI Copied Successfully."
 else
-	echo "❌ UI Build Failed. Aborting Build Stage."
+	echo "❌ UI Copy Failed. Aborting Build Stage."
 	exit 1
 fi
 echo ""
