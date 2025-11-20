@@ -5,15 +5,13 @@ FROM node:20-alpine AS builder
 WORKDIR /app
 
 # Copy package.json and package-lock.json and install dependencies
-# This step is cached efficiently if only dependencies change
 COPY package*.json ./
 RUN npm install
 
 # Copy the rest of the source code
 COPY . .
 
-# Compile TypeScript to JavaScript
-# This runs your 'npm run build' which executes 'tsc'
+# Build
 RUN npm run build
 
 

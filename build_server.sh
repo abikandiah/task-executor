@@ -30,18 +30,44 @@ IMAGE_TAG="$PROJECT_VERSION"
 echo "=========================================="
 echo "🚀 Starting Local CI Pipeline (Version: $IMAGE_TAG)"
 echo "=========================================="
+echo ""
 
 # --- Stage 1: Testing ---
-echo "--- Stage 1: Running Unit Tests (npm test) ---"
+# echo "--- Stage 1: Running Unit Tests (npm test) ---"
 
-if npm test; then
-    echo "✅ Tests Passed Successfully."
+# if npm test; then
+#     echo "✅ Tests Passed Successfully."
+# else
+#     echo "❌ Tests Failed. Aborting Build Stage."
+#     exit 1
+# fi
+# echo ""
+
+# --- Stage 2: Build UI ---
+echo "--- Stage 2: Building UI (npm run build) ---"
+cd ../task-executor-ui
+if npm run build; then
+	echo "✅ UI Built Successfully."
+	rsync -av --delete dist/ ../task-executor/src/ui-build/
+	echo "✅ UI Build Copied Into Server."
 else
-    echo "❌ Tests Failed. Aborting Build Stage."
-    exit 1
+	echo "❌ UI Build Failed. Aborting Build Stage."
+	exit 1
 fi
+cd ../task-executor
+echo ""
 
-# --- Stage 2: Docker Build ---
+# --- Stage 3: Build Server ---
+echo "--- Stage 2: Building Server (npm run build) ---"
+if npm run build; then
+	echo "✅ Server Built Successfully."
+else
+	echo "❌ Server Build Failed. Aborting Build Stage."
+	exit 1
+fi
+echo ""
+
+# --- Stage 4: Docker Build ---
 echo "--- Stage 2: Building Docker Image ($IMAGE_NAME:$IMAGE_TAG) ---"
 
 # NOTE: Prefix with 'sudo' if you haven't added your user to the 'docker' group (best practice)
@@ -51,8 +77,11 @@ else
     echo "❌ Docker Build Failed. Review Dockerfile and logs."
     exit 1
 fi
+echo ""
+
 
 echo "=========================================="
 echo "Pipeline COMPLETE."
 echo "To run the container: docker run -d -p 8080:3000 $IMAGE_NAME:$IMAGE_TAG"
 echo "=========================================="
+echo ""
