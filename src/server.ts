@@ -187,9 +187,11 @@ config.api.supportedVersions.forEach(version => {
 
 const uiPath = path.join(__dirname, 'ui-build');
 app.use(express.static(uiPath));
+
+// Catch-all to serve UI for non-API routes
 app.use((req, res) => {
 	if (req.method === 'GET') {
-		res.sendFile(path.join(uiPath, 'assets', 'index.html'));
+		res.sendFile(path.join(uiPath, 'index.html'));
 	} else {
 		res.status(404).json({
 			status: 'error',

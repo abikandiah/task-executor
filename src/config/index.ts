@@ -8,9 +8,10 @@ import { z } from 'zod';
 // Load environment variables
 dotenv.config();
 
-// Load package.json for app metadata
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
+
+// Load package.json for app metadata
 const packageJson = JSON.parse(
 	readFileSync(join(__dirname, '../../package.json'), 'utf8')
 );
@@ -130,7 +131,7 @@ const versionConfigSchema = z.object({
 
 const apiVersionsSchema = z.object({
 	v1: versionConfigSchema,
-	v2: versionConfigSchema,
+	// v2: versionConfigSchema,
 });
 
 type VersionConfig = z.infer<typeof versionConfigSchema>;
@@ -143,20 +144,11 @@ type ApiVersions = z.infer<typeof apiVersionsSchema>;
 const apiVersions: ApiVersions = {
 	v1: {
 		deprecated: false,
-		// sunsetDate: '2026-12-31',
-		// message: 'API v1 is deprecated. Please migrate to v2 by December 31, 2026.',
 		rateLimit: {
 			windowMs: 15 * 60 * 1000, // 15 minutes
 			max: 1000, // Lower limit for deprecated version
 		},
-	},
-	v2: {
-		deprecated: false,
-		rateLimit: {
-			windowMs: 15 * 60 * 1000, // 15 minutes
-			max: 1000,
-		},
-	},
+	}
 };
 
 // Validate API versions config
@@ -180,36 +172,32 @@ export const config = {
 	isDevelopment: env.NODE_ENV === 'development',
 	isTest: env.NODE_ENV === 'test',
 
-	// API versioning
 	api: {
 		currentVersion: env.API_VERSION,
 		supportedVersions: ['v1'] as const,
 		versions: apiVersions,
 	},
 
-	// CORS
 	cors: {
 		origin: env.CORS_ORIGIN,
 	},
 
-	// JWT
 	jwt: {
 		secret: env.JWT_SECRET,
 		expiresIn: env.JWT_EXPIRES_IN,
 	},
 
-	// Authentication
 	auth: {
+		jwtSecret: env.JWT_SECRET,
 		authentikSecret: env.AUTHENTIK_SECRET,
 		devSecret: env.DEV_SECRET,
 	},
 
-	// Logging
 	logging: {
 		level: env.LOG_LEVEL,
 	},
 
-	// Database (optional)
+	// Optional
 	database: env.DATABASE_URL ? {
 		url: env.DATABASE_URL,
 		pool: {
@@ -218,7 +206,7 @@ export const config = {
 		},
 	} : undefined,
 
-	// Redis (optional)
+	// Optional
 	redis: env.REDIS_URL ? {
 		url: env.REDIS_URL,
 	} : undefined,
@@ -229,7 +217,6 @@ export const config = {
 // ============================================
 
 if (config.isProduction) {
-	// Required in production
 	const requiredInProduction = [
 		{ key: 'JWT_SECRET', value: env.JWT_SECRET },
 		{ key: 'AUTHENTIK_SECRET', value: env.AUTHENTIK_SECRET },
@@ -247,7 +234,6 @@ if (config.isProduction) {
 	if (config.cors.origin.includes('*')) {
 		console.warn('⚠️ WARNING: CORS is set to allow all origins (*)');
 	}
-
 	if (config.cors.origin.some(origin => origin.includes('localhost'))) {
 		console.warn('⚠️ WARNING: CORS includes localhost in production');
 	}
@@ -287,19 +273,4 @@ export const isVersionDeprecated = (version: string): boolean => {
 export type Config = typeof config;
 export type Environment = z.infer<typeof envSchema>;
 export type { ApiVersions, VersionConfig };
-
-// ============================================
-// STARTUP LOGGING
-// ============================================
-
-if (config.isDevelopment) {
-	console.log('📦 Configuration loaded:');
-	console.log(`  - App: ${config.app.name} v${config.app.version}`);
-	console.log(`  - Environment: ${config.env}`);
-	console.log(`  - Port: ${config.port}`);
-	console.log(`  - API Version: ${config.api.currentVersion}`);
-	console.log(`  - CORS Origins: ${config.cors.origin.join(', ')}`);
-	console.log(`  - Log Level: ${config.logging.level}`);
-	console.log(`  - Build: ${config.app.buildNumber} (${config.app.commitSha})`);
-}
 

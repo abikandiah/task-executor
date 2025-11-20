@@ -35,11 +35,15 @@ export const authMiddleware = (req: Request, res: Response, next: NextFunction):
 			};
 		} else {
 			// Validate JWT token
+			if (!config.auth.jwtSecret) {
+				throw new Error('JWT secret not configured.');
+			}
 			if (!config.auth.authentikSecret) {
 				throw new Error('Authentik secret not configured.');
 			}
 
-			const decoded = jwt.verify(token, config.auth.authentikSecret) as JwtPayload;
+			// TODO: check if authentik, if not check jwt
+			const decoded = jwt.verify(token, config.auth.jwtSecret) as JwtPayload;
 			req.user = decoded;
 		}
 

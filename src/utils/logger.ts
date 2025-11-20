@@ -24,7 +24,7 @@ export const logger = winston.createLogger({
 	format: logFormat,
 	transports: [
 		new winston.transports.Console({
-			format: config.env === 'development' ? consoleFormat : logFormat,
+			format: config.isDevelopment ? consoleFormat : logFormat,
 		}),
 		new winston.transports.File({
 			filename: 'logs/error.log',
@@ -43,6 +43,9 @@ export const logger = winston.createLogger({
 // Morgan Middleware with Winston
 const stream = {
 	write: (message: string) => {
+		if (config.isDevelopment) {
+			console.log(message.trim());
+		}
 		logger.http(message.trim());
 	},
 };
