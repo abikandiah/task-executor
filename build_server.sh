@@ -1,19 +1,17 @@
 #!/bin/bash
 
-# --- Configuration ---
 IMAGE_NAME="task-executor"
 
 # Exit immediately if a command exits with a non-zero status.
-# Crucial for pipelines: ensures we abort if a step fails.
 set -e
 
-# --- Stage 0: Version Extraction (Robust) ---
+# --- Stage 0: Version Extraction ---
 # Use '|| true' to let Bash continue even if 'git describe' exits with an error (e.g., no tags).
 PROJECT_VERSION=$(git describe --tags --abbrev=0 2>/dev/null || true)
 
 # Check if the Git command returned an empty string.
 if [ -z "$PROJECT_VERSION" ]; then
-    echo "⚠️ No Git tag found. Falling back to package.json version."
+    echo "No Git tag found. Falling back to package.json version."
     
     # Extract version from package.json
     PROJECT_VERSION=$(grep '"version":' package.json | sed -E 's/.*"([0-9]+\.[0-9]+\.[0-9]+)".*/\1/')
@@ -36,7 +34,7 @@ echo ""
 # echo "--- Stage 1: Running Unit Tests (npm test) ---"
 
 # if npm test; then
-#     echo "✅ Tests Passed Successfully."
+#     echo "Tests Passed Successfully."
 # else
 #     echo "❌ Tests Failed. Aborting Build Stage."
 #     exit 1
@@ -45,22 +43,20 @@ echo ""
 
 # --- Stage 2: Build UI ---
 echo "--- Stage 2: Building UI (npm run build) ---"
-cd ../task-executor-ui
-if npm run build; then
-	echo "✅ UI Built Successfully."
+if npm run build:sync-ui; then
+	echo "UI Built Successfully."
 	rsync -av --delete dist/ ../task-executor/src/ui-build/
-	echo "✅ UI Build Copied Into Server."
+	echo "UI Build Copied Into Server."
 else
 	echo "❌ UI Build Failed. Aborting Build Stage."
 	exit 1
 fi
-cd ../task-executor
 echo ""
 
 # --- Stage 3: Build Server ---
-echo "--- Stage 2: Building Server (npm run build) ---"
+echo "--- Stage 3: Building Server (npm run build) ---"
 if npm run build; then
-	echo "✅ Server Built Successfully."
+	echo "Server Built Successfully."
 else
 	echo "❌ Server Build Failed. Aborting Build Stage."
 	exit 1
