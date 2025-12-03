@@ -4,6 +4,7 @@ import helmet from 'helmet';
 import { fileURLToPath } from 'url';
 // import compression from 'compression';
 import rateLimit, { Options } from 'express-rate-limit';
+import path from 'path';
 import getVersionRouter from 'utils/versionRouter.js';
 import { config } from './config/index.js';
 import { errorHandler } from './middlewares/errorHandler.js';
@@ -11,6 +12,8 @@ import { logger, morganMiddleware } from './utils/logger.js';
 
 
 const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 const app: Express = express();
 
 // ============================================
@@ -110,6 +113,10 @@ app.get('/ready', (req: Request, res: Response) => {
 	res.status(200).json({ status: 'ready' });
 });
 
+// ============================================
+// VERSIONED API ROUTES0
+// ============================================
+
 // API routes
 config.api.supportedVersions.forEach(version => {
 	const versionConfig = config.api.versions[version];
@@ -172,6 +179,25 @@ config.api.supportedVersions.forEach(version => {
 
 	app.use(`/api/${version}/auth`, authLimiter);
 	app.use(`/api/${version}`, reqHandler, apiLimiter, router);
+});
+
+// ============================================
+// STATIIC FILE SERVING FOR CLIENT APP
+// ============================================
+
+const uiPath = path.join(__dirname, 'ui-build');
+app.use(express.static(uiPath));
+
+// Catch-all to serve UI for non-API routes
+app.use((req, res) => {
+	if (req.method === 'GET') {
+		res.sendFile(path.join(uiPath, 'index.html'));
+	} else {
+		res.status(404).json({
+			status: 'error',
+			message: `Route ${req.originalUrl} not found`,
+		});
+	}
 });
 
 // ============================================
