@@ -62,7 +62,7 @@ fi
 echo ""
 
 # --- Stage 4: Docker Build ---
-echo "--- Stage 2: Building Docker Image ($IMAGE_NAME:$IMAGE_TAG) ---"
+echo "--- Stage 4: Building Docker Image ($IMAGE_NAME:$IMAGE_TAG) ---"
 
 # NOTE: Prefix with 'sudo' if you haven't added your user to the 'docker' group (best practice)
 if sudo docker build -t "$IMAGE_NAME:$IMAGE_TAG" .; then
